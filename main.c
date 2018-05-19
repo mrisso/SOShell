@@ -3,6 +3,8 @@
 int main (void)
 {
 
+	signal(SIGINT, sigIntHandler);
+
 	char **pName = malloc(sizeof(char*) * 6);
 	int sig;
 	pid_t pid;
@@ -21,13 +23,15 @@ int main (void)
 
 		case EXIT_CMD:
 			free(pName);
-			printf("vou quitar\n");
 			exitCmd();
 			break;
 
 		case EXEC_CMD:
 			pid = execCmd(pName);
+			setPID(pid);
+			setForeground(1);
 			waitpid(pid, NULL, WUNTRACED);
+			setForeground(0);
 			break;
 
 		case EXEC_ERR_ARGS:

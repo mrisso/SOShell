@@ -30,4 +30,8 @@ pid_t execCmd (char **);
 
 int manageSignals (int);
 
+void setForeground (int);
+
+void sigIntHandler (int);
+
 #endif
