@@ -209,8 +209,8 @@ void sigIntHandler (int dummy)
 
 			if(c == '\n' || c == 'S' || c == 's')
 			{
-				//Suspender filho
-
+				manageSignals(UNBLOCK);
+				kill(PID,SIGSTOP); // Suspender processo
 				break;
 			}
 
@@ -219,5 +219,5 @@ void sigIntHandler (int dummy)
 		}
 	}
 
-	manageSignals(UNBLOCK);
+	manageSignals(UNBLOCK); // Desbloquear todos os sinais após o tratamento
 }

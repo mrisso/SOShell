@@ -32,6 +32,8 @@ int manageSignals (int);
 
 void setForeground (int);
 
+void setPid (pid_t);
+
 void sigIntHandler (int);
 
 #endif

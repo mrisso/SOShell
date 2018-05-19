@@ -28,7 +28,7 @@ int main (void)
 
 		case EXEC_CMD:
 			pid = execCmd(pName);
-			setPID(pid);
+			setPid(pid);
 			setForeground(1);
 			waitpid(pid, NULL, WUNTRACED);
 			setForeground(0);
