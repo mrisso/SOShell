@@ -1,9 +1,7 @@
 #include "csh.h"
 
-#define DEBUG 0
-
-int PID = 0;
-int foreground = 0;
+int PID = 0; // PID do filho para tratamento de Ctrl-C
+int foreground = FG_FALSE; // Booleano para tratar o Ctrl-C
 
 // Funções da CSH
 
@@ -52,7 +50,7 @@ int getCom (char **pName) //pName precisa ser alocado antes como um vetor que co
 	//Separando a string em programa e argumentos
 	token = strtok(comando, delim);
 	if(token)
-		pName[0] = strdup(token);
+		pName[0] = strdup(token); //Duplicar string
 
 	else
 		return EXEC_NULL; //Se token for NULL, entrada vazia
@@ -60,14 +58,14 @@ int getCom (char **pName) //pName precisa ser alocado antes como um vetor que co
 	for(i = 1; i <= 5; i++)
 	{
 		if((token = strtok(NULL, delim)))
-			pName[i] = strdup(token);
+			pName[i] = strdup(token); //Duplicar string
 
 		else
 			pName[i] = NULL;
 	}
 			
 	//Se sim, o programa tem mais de 5 argumentos
-	if(strtok(NULL, delim) != NULL)//Se sim, o programa tem mais de 5 argumentos
+	if(strtok(NULL, delim) != NULL)
 	{
 		free(comando);
 		return EXEC_ERR_ARGS; //Erro de numero de argumentos
@@ -96,7 +94,7 @@ void waitCmd (void)
 	while((pid = waitpid(-1, &status, WNOHANG)) >= 0) //waitpid para todos os processos
 	{
 		count++;
-		if(WIFEXITED(status) != 0) //Teste de morte por sinal
+		if(WIFEXITED(status) != 0) //Teste de morte por exit
 		{
 			printf("O processo %d morreu por um EXIT\n", pid);
 		}
@@ -113,7 +111,7 @@ void waitCmd (void)
 
 void exitCmd (void)
 {
-	//Wait para aguardar que os processos zumbis morram
+	//Wait para aguardar que os processos zumbis ou suspensos morram
 	while(waitpid(-1, NULL, WNOHANG)>=0);
 
 	//Exit para finalizar a shell
@@ -197,12 +195,12 @@ int manageSignals (int action)
 
 void setForeground (int value)
 {
-	foreground = value;
+	foreground = value; // Sinalizar se existe um processo em foreground
 }
 
 void setPid (pid_t pid)
 {
-	PID = pid;
+	PID = pid; // Sinalizar PID do processo em foreground
 }
 
 void sigIntHandler (int dummy)
@@ -216,11 +214,11 @@ void sigIntHandler (int dummy)
 		while(1)
 		{
 			printf("Não adianta me enviar um sinal por Ctrl-c, não vou morrer! Você quer suspender meu filho que está rodando em foreground? S/n: ");
-			c = getc(stdin); 
+			c = getc(stdin); getc(stdin);
 
 			if(c == '\n' || c == 'S' || c == 's')
 			{
-				kill(PID,SIGSTOP); // Suspender processo
+				kill(PID,SIGSTOP); // Suspender processo em fg
 				break;
 			}
 

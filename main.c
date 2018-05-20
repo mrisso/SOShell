@@ -4,8 +4,9 @@ int main (void)
 {
 	signal(SIGINT, sigIntHandler);
 
-	char **pName = malloc(sizeof(char*) * 6);
-	int sig;
+	// Vetor de strings para receber o comando da função getCom
+	char **pName = malloc(sizeof(char*) * 6); 
+	int sig; // Retorno de getCom
 	pid_t pid;
 
 	while(1)
@@ -14,7 +15,7 @@ int main (void)
 
 		sig = getCom(pName);
 
-		switch(sig)
+		switch(sig) // Executar o comando tratado por getCom 
 		{
 		case WAIT_CMD:
 			waitCmd();
@@ -27,21 +28,23 @@ int main (void)
 
 		case EXEC_CMD:
 			pid = execCmd(pName);
-			setPid(pid);
-			setForeground(1);
+			setPid(pid); //Sinalizar pid do processo em fg
+			setForeground(1); //Sinalizar um processo em fg
+			//Waitpid sensível a mudança de estado
 			waitpid(pid, NULL, WUNTRACED);
-			setForeground(0);
+			setForeground(0); //Sinalizar processo em fg inexistente
 			break;
 
-		case EXEC_ERR_ARGS:
+		case EXEC_ERR_ARGS: // Número de argumentos maior que 5
 			printf("Número máximo de argumentos (5) foi excedido\n");
 			break;
 
-		case EXEC_NULL:
+		case EXEC_NULL: //Nenhuma entrada
 			break;
 
+			//Esta mensagem nunca aparecerá.
 		default:
-			printf("Algo de errado não está certo\n");
+			printf("Função getCom teve retorno inesperado\n");
 			break;
 		}
 	}

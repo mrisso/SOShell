@@ -1,18 +1,27 @@
 #ifndef CSH_H
 #define CSH_H
 
-#define PROG_TAM      256
+#define DEBUG         0 // Caso seja 1, habilitar prints de debug
 
+// Tamanho para a string que captura o comando
+#define PROG_TAM      256 
+
+// Constantes para o retorno de getCom
 #define WAIT_CMD      1
 #define EXIT_CMD      2
 #define EXEC_CMD      3
 #define EXEC_ERR_ARGS 4
 #define EXEC_NULL     5
 
-#define UNBLOCK       5
-#define BLOCK         6
-#define BLOCK_SIGINT  7
+// Constantes para o tratamento de sinais
+#define UNBLOCK       6
+#define BLOCK         7
 
+// Constantes para o tratamento de foreground
+#define FG_TRUE       1
+#define FG_FALSE      0
+
+// Includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,8 +43,6 @@ int manageSignals (int);
 void setForeground (int);
 
 void setPid (pid_t);
-
-void sigIntHandlerShell(int);
 
 void sigIntHandler (int);
 
