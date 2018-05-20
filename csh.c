@@ -91,7 +91,7 @@ void waitCmd (void)
 	int count = 0;
 	pid_t pid;
 
-	while((pid = waitpid(-1, &status, WNOHANG)) >= 0) //waitpid para todos os processos
+	while((pid = waitpid(-1, &status, WNOHANG)) > 0) //waitpid para todos os processos
 	{
 		count++;
 		if(WIFEXITED(status) != 0) //Teste de morte por exit
@@ -105,8 +105,7 @@ void waitCmd (void)
 		}
 	}
 
-	if(count == 0)
-		printf("Não existem processos no modo Zombie\n");
+	printf("Não existem mais processos no modo Zombie\n");
 }
 
 void exitCmd (void)
@@ -214,7 +213,10 @@ void sigIntHandler (int dummy)
 		while(1)
 		{
 			printf("Não adianta me enviar um sinal por Ctrl-c, não vou morrer! Você quer suspender meu filho que está rodando em foreground? S/n: ");
-			c = getc(stdin); getc(stdin);
+			c = getc(stdin);
+
+			if(c != '\n')
+				getc(stdin);
 
 			if(c == '\n' || c == 'S' || c == 's')
 			{
