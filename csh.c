@@ -14,7 +14,7 @@ int getCom (char **pName) //pName precisa ser alocado antes como um vetor que co
 	int i;
 	char delim[2];
 	delim[0] = ' ';
-	delim[1] = '\0';
+	delim[1] = '\0'; //Criar delimitador para strtok
 	
     fgets(comando, PROG_TAM ,stdin);
 
@@ -96,14 +96,14 @@ void waitCmd (void)
 	while((pid = waitpid(-1, &status, WNOHANG)) >= 0) //waitpid para todos os processos
 	{
 		count++;
-		if(WIFEXITED(status) && WEXITSTATUS(status) != EXIT_SUCCESS) //Teste de morte por sinal
+		if(WIFEXITED(status) != 0) //Teste de morte por sinal
 		{
-			printf("O processo %d morreu por um SINGAL\n", pid);
+			printf("O processo %d morreu por um EXIT\n", pid);
 		}
 
 		else
 		{
-			printf("O processo %d morreu por um EXIT\n", pid);
+			printf("O processo %d morreu por um SIGNAL\n", pid);
 		}
 	}
 
@@ -125,7 +125,10 @@ pid_t execCmd (char **vCmd)
 	pid_t pid;
 
 	//Execução do fork para o processo em foreground (filho)
-	pid = fork();
+	if((pid = fork()) == -1)
+	{
+		printf("Não foi possível criar o processo filho (foreground)\n");
+	}
 
 	if(pid != 0) //Caso seja a csh, retorne o pid do filho
 	{
@@ -134,7 +137,10 @@ pid_t execCmd (char **vCmd)
 
 	else //Caso seja o filho da csh, faça um fork e execute
 	{
-		pid = fork();
+		if((pid = fork()) == -1)
+		{
+			printf("Não foi possível criar o processo neto (background)\n");
+		}
 
 		if(pid == 0)
 		{
@@ -148,7 +154,7 @@ pid_t execCmd (char **vCmd)
 				if(execvp(vCmd[0], vCmd) == -1)//Executa o programa no neto e mata os processos em caso de erro
 				{
 					kill(getppid(), SIGTERM);
-					printf("Programa não encontrado1!\n");
+					printf("Comando não encontrado!\n");
 					exit(1);			
 				}
 			}
@@ -156,14 +162,13 @@ pid_t execCmd (char **vCmd)
 
 		else
 		{
+			manageSignals(UNBLOCK); //Todos os sinais ficam desbloqueados menos SIGINT
 			if(execvp(vCmd[0], vCmd) == -1)//Executa o programa no filho e mata os processos em caso de erro
 			{
 				kill(pid, SIGTERM);
-				printf("Programa não encontrado2!\n");
+				printf("Comando não encontrado!\n");
 				exit(1);			
 			}
-
-			waitpid(pid,NULL,0);
 		}
 	}	
 	  
@@ -180,9 +185,10 @@ int manageSignals (int action)
 		return sigprocmask(SIG_SETMASK, &mask, NULL);
 	}
 
-	if(action == UNBLOCK) //Desbloquear todos os sinais
+	if(action == UNBLOCK) //Desbloquear todos os sinais menos SIGINT
 	{
 		sigemptyset(&mask);
+		sigaddset(&mask, SIGINT);
 		return sigprocmask(SIG_SETMASK, &mask, NULL);
 	}
 
@@ -199,10 +205,6 @@ void setPid (pid_t pid)
 	PID = pid;
 }
 
-void sigIntHandlerShell (int dummy)
-{
-}
-
 void sigIntHandler (int dummy)
 {
 	char c;
@@ -214,11 +216,10 @@ void sigIntHandler (int dummy)
 		while(1)
 		{
 			printf("Não adianta me enviar um sinal por Ctrl-c, não vou morrer! Você quer suspender meu filho que está rodando em foreground? S/n: ");
-			c = getc(stdin); getc(stdin);
+			c = getc(stdin); 
 
 			if(c == '\n' || c == 'S' || c == 's')
 			{
-				manageSignals(UNBLOCK);
 				kill(PID,SIGSTOP); // Suspender processo
 				break;
 			}
@@ -228,5 +229,5 @@ void sigIntHandler (int dummy)
 		}
 	}
 
-	manageSignals(UNBLOCK); // Desbloquear todos os sinais após o tratamento
+	manageSignals(UNBLOCK); // Desbloquear os sinais após o tratamento
 }

@@ -2,7 +2,6 @@
 
 int main (void)
 {
-
 	signal(SIGINT, sigIntHandler);
 
 	char **pName = malloc(sizeof(char*) * 6);

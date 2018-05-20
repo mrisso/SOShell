@@ -11,6 +11,7 @@
 
 #define UNBLOCK       5
 #define BLOCK         6
+#define BLOCK_SIGINT  7
 
 #include <stdio.h>
 #include <stdlib.h>
