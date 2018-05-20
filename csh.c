@@ -90,10 +90,12 @@ int getCom (char **pName) //pName precisa ser alocado antes como um vetor que co
 void waitCmd (void)
 {
 	int status;
+	int count = 0;
 	pid_t pid;
 
-	while((pid = waitpid(-1, &status, WNOHANG)) > 0) //waitpid para todos os processos
+	while((pid = waitpid(-1, &status, WNOHANG)) >= 0) //waitpid para todos os processos
 	{
+		count++;
 		if(WIFEXITED(status) && WEXITSTATUS(status) != EXIT_SUCCESS) //Teste de morte por sinal
 		{
 			printf("O processo %d morreu por um SINGAL\n", pid);
@@ -104,6 +106,9 @@ void waitCmd (void)
 			printf("O processo %d morreu por um EXIT\n", pid);
 		}
 	}
+
+	if(count == 0)
+		printf("Não existem processos no modo Zombie\n");
 }
 
 void exitCmd (void)
@@ -133,7 +138,7 @@ pid_t execCmd (char **vCmd)
 
 		if(pid == 0)
 		{
-			if(setsid() == -1) //Coloca o processo em uma nova sessao (background)
+			if(setsid() == -1) //Coloca o processo neto em uma nova sessao (background)
 			{
 				printf("Nao foi possivel colocar o neto em background\n");
 			}
@@ -151,7 +156,7 @@ pid_t execCmd (char **vCmd)
 
 		else
 		{
-			if(execvp(vCmd[0], vCmd) == -1)//Executa o programa no neto e mata os processos em caso de erro
+			if(execvp(vCmd[0], vCmd) == -1)//Executa o programa no filho e mata os processos em caso de erro
 			{
 				kill(pid, SIGTERM);
 				printf("Programa não encontrado2!\n");
@@ -194,6 +199,10 @@ void setPid (pid_t pid)
 	PID = pid;
 }
 
+void sigIntHandlerShell (int dummy)
+{
+}
+
 void sigIntHandler (int dummy)
 {
 	char c;
@@ -205,7 +214,7 @@ void sigIntHandler (int dummy)
 		while(1)
 		{
 			printf("Não adianta me enviar um sinal por Ctrl-c, não vou morrer! Você quer suspender meu filho que está rodando em foreground? S/n: ");
-			c = getc(stdin);
+			c = getc(stdin); getc(stdin);
 
 			if(c == '\n' || c == 'S' || c == 's')
 			{

@@ -34,6 +34,8 @@ void setForeground (int);
 
 void setPid (pid_t);
 
+void sigIntHandlerShell(int);
+
 void sigIntHandler (int);
 
 #endif
